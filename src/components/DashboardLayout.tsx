@@ -1,4 +1,4 @@
-import { ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router';
 import { authService } from '../services/api';
 import { LayoutDashboard, MessageSquareWarning, ThumbsUp, FileText, LogOut, Users } from 'lucide-react';
