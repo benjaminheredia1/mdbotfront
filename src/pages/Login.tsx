@@ -41,15 +41,23 @@ export default function Login() {
       console.error('Response data:', err.response?.data);
       
       let errorMessage = '';
-      if (err.response?.data?.message) {
-        if (Array.isArray(err.response.data.message)) {
-          errorMessage = err.response.data.message.join(', ');
+      const responseData = err.response?.data;
+      
+      if (responseData) {
+        if (typeof responseData === 'string') {
+          errorMessage = responseData;
+        } else if (typeof responseData.message === 'string') {
+          errorMessage = responseData.message;
+        } else if (Array.isArray(responseData.message)) {
+          errorMessage = responseData.message.join(', ');
+        } else if (typeof responseData.error === 'string') {
+          errorMessage = responseData.error;
+        } else if (responseData.message && typeof responseData.message === 'object') {
+          errorMessage = JSON.stringify(responseData.message);
         } else {
-          errorMessage = err.response.data.message;
+          errorMessage = 'Error en la solicitud';
         }
-      } else if (err.response?.data?.error) {
-        errorMessage = err.response.data.error;
-      } else if (err.message) {
+      } else if (err.message && typeof err.message === 'string') {
         errorMessage = err.message;
       } else {
         errorMessage = isRegistering ? 'Error al registrar usuario' : 'Credenciales inválidas';
