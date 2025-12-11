@@ -2,7 +2,7 @@ import { useState } from 'react';
 import type { FormEvent } from 'react';
 import { useNavigate } from 'react-router';
 import { authService } from '../services/api';
-import './Login.css';
+import { Activity, Mail, Lock, AlertCircle, CheckCircle } from 'lucide-react';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -36,12 +36,13 @@ export default function Login() {
         await authService.login(email, password);
         navigate('/dashboard');
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error:', err);
-      console.error('Response data:', err.response?.data);
+      const error = err as { response?: { data?: { message?: string | string[] | object; error?: string } }; message?: string };
+      console.error('Response data:', error.response?.data);
       
       let errorMessage = '';
-      const responseData = err.response?.data;
+      const responseData = error.response?.data;
       
       if (responseData) {
         if (typeof responseData === 'string') {
@@ -57,8 +58,8 @@ export default function Login() {
         } else {
           errorMessage = 'Error en la solicitud';
         }
-      } else if (err.message && typeof err.message === 'string') {
-        errorMessage = err.message;
+      } else if (error.message && typeof error.message === 'string') {
+        errorMessage = error.message;
       } else {
         errorMessage = isRegistering ? 'Error al registrar usuario' : 'Credenciales inválidas';
       }
@@ -69,71 +70,123 @@ export default function Login() {
   };
 
   return (
-    <div className="login-container">
-      <div className="login-card">
-        <h1>Sistema Hospitalario</h1>
-        <h2>{isRegistering ? 'Registrarse' : 'Iniciar Sesión'}</h2>
-        
-        <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label htmlFor="email">Email</label>
-            <input
-              type="email"
-              id="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              placeholder="usuario@ejemplo.com"
-            />
+    <div className="min-h-screen bg-slate-100 flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden">
+        {/* Header */}
+        <div className="bg-slate-900 px-8 py-6 text-center">
+          <div className="flex items-center justify-center gap-2 mb-2">
+            <Activity className="text-blue-500" size={32} />
+            <span className="text-white font-bold text-2xl tracking-tight">Portal FQS</span>
           </div>
+          <p className="text-slate-400 text-sm">Sistema de Gestión Hospitalaria</p>
+        </div>
 
-          <div className="form-group">
-            <label htmlFor="password">Contraseña</label>
-            <input
-              type="password"
-              id="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              minLength={8}
-              placeholder="••••••••"
-            />
-          </div>
-
-          {isRegistering && (
-            <div className="form-group">
-              <label htmlFor="passwordConfirm">Confirmar Contraseña</label>
-              <input
-                type="password"
-                id="passwordConfirm"
-                value={passwordConfirm}
-                onChange={(e) => setPasswordConfirm(e.target.value)}
-                required
-                minLength={8}
-                placeholder="••••••••"
-              />
+        {/* Form */}
+        <div className="p-8">
+          <h2 className="text-xl font-bold text-slate-800 mb-6 text-center">
+            {isRegistering ? 'Crear Cuenta' : 'Iniciar Sesión'}
+          </h2>
+          
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <div>
+              <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
+                Email
+              </label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-3 text-slate-400" size={18} />
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  placeholder="usuario@ejemplo.com"
+                  className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:border-transparent outline-none text-sm transition-all"
+                />
+              </div>
             </div>
-          )}
 
-          {error && <div className="error-message">{error}</div>}
-          {success && <div className="success-message">{success}</div>}
+            <div>
+              <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
+                Contraseña
+              </label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-3 text-slate-400" size={18} />
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  minLength={8}
+                  placeholder="••••••••"
+                  className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:border-transparent outline-none text-sm transition-all"
+                />
+              </div>
+            </div>
 
-          <button type="submit" disabled={loading} className="btn-primary">
-            {loading ? 'Procesando...' : isRegistering ? 'Registrarse' : 'Iniciar Sesión'}
-          </button>
-        </form>
+            {isRegistering && (
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
+                  Confirmar Contraseña
+                </label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-3 text-slate-400" size={18} />
+                  <input
+                    type="password"
+                    value={passwordConfirm}
+                    onChange={(e) => setPasswordConfirm(e.target.value)}
+                    required
+                    minLength={8}
+                    placeholder="••••••••"
+                    className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:border-transparent outline-none text-sm transition-all"
+                  />
+                </div>
+              </div>
+            )}
 
-        <button
-          className="btn-link"
-          onClick={() => {
-            setIsRegistering(!isRegistering);
-            setError('');
-            setSuccess('');
-            setPasswordConfirm('');
-          }}
-        >
-          {isRegistering ? '¿Ya tienes cuenta? Inicia sesión' : '¿No tienes cuenta? Regístrate'}
-        </button>
+            {error && (
+              <div className="flex items-center gap-2 p-3 bg-rose-50 border border-rose-200 rounded-lg text-rose-700 text-sm">
+                <AlertCircle size={18} />
+                <span>{error}</span>
+              </div>
+            )}
+            
+            {success && (
+              <div className="flex items-center gap-2 p-3 bg-emerald-50 border border-emerald-200 rounded-lg text-emerald-700 text-sm">
+                <CheckCircle size={18} />
+                <span>{success}</span>
+              </div>
+            )}
+
+            <button 
+              type="submit" 
+              disabled={loading} 
+              className="w-full py-3 bg-slate-900 text-white rounded-xl hover:bg-slate-800 transition-all shadow-lg hover:shadow-xl font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            >
+              {loading ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  Procesando...
+                </>
+              ) : (
+                isRegistering ? 'Crear Cuenta' : 'Iniciar Sesión'
+              )}
+            </button>
+          </form>
+
+          <div className="mt-6 text-center">
+            <button
+              onClick={() => {
+                setIsRegistering(!isRegistering);
+                setError('');
+                setSuccess('');
+                setPasswordConfirm('');
+              }}
+              className="text-sm text-blue-600 hover:text-blue-800 font-medium transition-colors"
+            >
+              {isRegistering ? '¿Ya tienes cuenta? Inicia sesión' : '¿No tienes cuenta? Regístrate'}
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );
