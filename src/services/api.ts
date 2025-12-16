@@ -144,4 +144,150 @@ export const personaService = {
   delete: (id: number) => api.delete(`/persona/${id}`),
 };
 
+// =============================================
+// WEBHOOK SERVICES (Sin autenticación)
+// =============================================
+
+// Tipos para webhooks
+export interface WebhookQuejaInput {
+  hcCode: string;
+  descripcion: string;
+  nombrePaciente?: string;
+  habitacion?: string;
+  fechaHora?: string;
+}
+
+export interface WebhookFelicitacionInput {
+  hcCode: string;
+  descripcion: string;
+  nombrePaciente?: string;
+  habitacion?: string;
+  fechaHora?: string;
+}
+
+export interface WebhookSolicitudInput {
+  hcCode: string;
+  descripcion: string;
+  nombrePaciente?: string;
+  habitacion?: string;
+  fechaHora?: string;
+}
+
+export interface WebhookPersonaInput {
+  hcCode: string;
+  nombre?: string;
+  apellido?: string;
+  telefono?: string;
+  habitacion?: string;
+}
+
+export interface WebhookEstadoInput {
+  id: number;
+  tipo: 'queja' | 'felicitacion' | 'solicitud';
+  estado: 'PENDIENTE' | 'EN_REVISION' | 'RESUELTO' | 'CERRADO';
+  comentario?: string;
+}
+
+export interface WebhookResponse<T> {
+  success: boolean;
+  message: string;
+  data: T;
+}
+
+export interface DashboardStats {
+  quejas: {
+    total: number;
+    pendientes: number;
+    enRevision: number;
+    resueltas: number;
+  };
+  felicitaciones: {
+    total: number;
+    pendientes: number;
+    revisadas: number;
+  };
+  solicitudes: {
+    total: number;
+    pendientes: number;
+    enProceso: number;
+    completadas: number;
+  };
+  personas: {
+    total: number;
+  };
+}
+
+// Servicio de webhooks (públicos, sin JWT)
+export const webhookService = {
+  // Crear queja via webhook
+  crearQueja: async (data: WebhookQuejaInput): Promise<WebhookResponse<any>> => {
+    const response = await fetch(`${API_BASE_URL}/webhook/queja`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    if (!response.ok) throw new Error(`Error: ${response.status}`);
+    return response.json();
+  },
+
+  // Crear felicitación via webhook
+  crearFelicitacion: async (data: WebhookFelicitacionInput): Promise<WebhookResponse<any>> => {
+    const response = await fetch(`${API_BASE_URL}/webhook/felicitacion`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    if (!response.ok) throw new Error(`Error: ${response.status}`);
+    return response.json();
+  },
+
+  // Crear solicitud via webhook
+  crearSolicitud: async (data: WebhookSolicitudInput): Promise<WebhookResponse<any>> => {
+    const response = await fetch(`${API_BASE_URL}/webhook/solicitud`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    if (!response.ok) throw new Error(`Error: ${response.status}`);
+    return response.json();
+  },
+
+  // Crear o actualizar persona via webhook
+  crearPersona: async (data: WebhookPersonaInput): Promise<WebhookResponse<any>> => {
+    const response = await fetch(`${API_BASE_URL}/webhook/persona`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    if (!response.ok) throw new Error(`Error: ${response.status}`);
+    return response.json();
+  },
+
+  // Buscar persona por hcCode
+  buscarPersonaPorHcCode: async (hcCode: string): Promise<any | null> => {
+    const response = await fetch(`${API_BASE_URL}/webhook/persona/hccode/${encodeURIComponent(hcCode)}`);
+    if (response.status === 404) return null;
+    if (!response.ok) throw new Error(`Error: ${response.status}`);
+    return response.json();
+  },
+
+  // Actualizar estado de queja/felicitación/solicitud
+  actualizarEstado: async (data: WebhookEstadoInput): Promise<WebhookResponse<any>> => {
+    const response = await fetch(`${API_BASE_URL}/webhook/estado`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    if (!response.ok) throw new Error(`Error: ${response.status}`);
+    return response.json();
+  },
+
+  // Obtener estadísticas del dashboard
+  obtenerDashboard: async (): Promise<DashboardStats> => {
+    const response = await fetch(`${API_BASE_URL}/webhook/dashboard`);
+    if (!response.ok) throw new Error(`Error: ${response.status}`);
+    return response.json();
+  },
+};
+
 export default api;

@@ -46,3 +46,51 @@ export interface Solicitud {
   createdAt: string;
   persona?: Persona;
 }
+
+// =============================================
+// TIPOS PARA WEBHOOKS
+// =============================================
+
+export interface WebhookQueja {
+  id: number;
+  hcCode: string;
+  descripcion: string;
+  nombrePaciente?: string;
+  habitacion?: string;
+  fechaHora?: string;
+  estado: 'PENDIENTE' | 'EN_REVISION' | 'RESUELTO' | 'CERRADO';
+  createdAt: string;
+}
+
+export interface WebhookFelicitacion {
+  id: number;
+  hcCode: string;
+  descripcion: string;
+  nombrePaciente?: string;
+  habitacion?: string;
+  fechaHora?: string;
+  estado: 'PENDIENTE' | 'EN_REVISION' | 'RESUELTO' | 'CERRADO';
+  createdAt: string;
+}
+
+export interface WebhookSolicitud {
+  id: number;
+  hcCode: string;
+  descripcion: string;
+  nombrePaciente?: string;
+  habitacion?: string;
+  fechaHora?: string;
+  estado: 'PENDIENTE' | 'EN_REVISION' | 'RESUELTO' | 'CERRADO';
+  createdAt: string;
+}
+
+export interface WebhookPersona {
+  id: number;
+  hcCode: string;
+  nombre?: string;
+  apellido?: string;
+  telefono?: string;
+  habitacion?: string;
+  createdAt: string;
+  updatedAt: string;
+}

@@ -8,17 +8,43 @@ import Quejas from './pages/Quejas.tsx';
 import Felicitaciones from './pages/Felicitaciones.tsx';
 import Solicitudes from './pages/Solicitudes.tsx';
 import Personas from './pages/Personas.tsx';
-import { authService } from './services/api.ts';
+import { getCookie } from './services/api.ts';
 
+// Componente para rutas protegidas
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const isLoggedIn = authService.isAuthenticated();
-  return isLoggedIn ? <>{children}</> : <Navigate to="/login" replace />;
+  // Verificar directamente la cookie además del servicio
+  const token = getCookie('jwt_token');
+  const isLoggedIn = token !== null && token.length > 0;
+  
+  console.log('ProtectedRoute - Token exists:', isLoggedIn, 'Token length:', token?.length);
+  
+  if (!isLoggedIn) {
+    return <Navigate to="/login" replace />;
+  }
+  
+  return <>{children}</>;
+};
+
+// Componente para redirigir si ya está autenticado
+const PublicRoute = ({ children }: { children: React.ReactNode }) => {
+  const token = getCookie('jwt_token');
+  const isLoggedIn = token !== null && token.length > 0;
+  
+  if (isLoggedIn) {
+    return <Navigate to="/dashboard" replace />;
+  }
+  
+  return <>{children}</>;
 };
 
 const router = createBrowserRouter([
   {
     path: "/login",
-    element: <Login />,
+    element: (
+      <PublicRoute>
+        <Login />
+      </PublicRoute>
+    ),
   },
   {
     path: "/dashboard",
