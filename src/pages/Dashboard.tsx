@@ -1,19 +1,20 @@
 import { useState, useEffect, useMemo } from 'react';
 import DashboardLayout from '../components/DashboardLayout';
-import { 
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
-  PieChart, Pie, Cell 
+import {
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  PieChart, Pie, Cell
 } from 'recharts';
 import { quejasService, felicitacionService, solicitudService } from '../services/api';
+
 import type { Queja, Felicitacion, Solicitud } from '../types';
-import { 
-  Activity, 
-  Search, 
-  AlertCircle, 
-  CheckCircle, 
-  FileText, 
-  Calendar, 
-  Clock, 
+import {
+  Activity,
+  Search,
+  AlertCircle,
+  CheckCircle,
+  FileText,
+  Calendar,
+  Clock,
   ChevronRight,
   MapPin,
   X,
@@ -54,18 +55,20 @@ interface RegistroUnificado {
     hcCode: string;
   };
 }
+import Swal from 'sweetalert2';
+import { webhookService } from '../services/api';
 
 export default function Dashboard() {
   const [quejas, setQuejas] = useState<Queja[]>([]);
   const [felicitaciones, setFelicitaciones] = useState<Felicitacion[]>([]);
   const [solicitudes, setSolicitudes] = useState<Solicitud[]>([]);
   const [loading, setLoading] = useState(true);
-  
+
   // Filtros
   const [filter, setFilter] = useState('');
   const [typeFilter, setTypeFilter] = useState('Todos');
   const [statusFilter, setStatusFilter] = useState('Todos');
-  
+
   // Modal de resolución
   const [closingEntry, setClosingEntry] = useState<RegistroUnificado | null>(null);
   const [resolucion, setResolucion] = useState('');
@@ -95,7 +98,7 @@ export default function Dashboard() {
   // Unificar todos los registros
   const allRecords: RegistroUnificado[] = useMemo(() => {
     const records: RegistroUnificado[] = [];
-    
+
     quejas.forEach(q => records.push({
       id: q.id,
       tipo: 'Queja',
@@ -107,7 +110,7 @@ export default function Dashboard() {
       createdAt: q.createdAt,
       persona: q.persona
     }));
-    
+
     felicitaciones.forEach(f => records.push({
       id: f.id,
       tipo: 'Felicitación',
@@ -119,7 +122,7 @@ export default function Dashboard() {
       createdAt: f.createdAt,
       persona: f.persona
     }));
-    
+
     solicitudes.forEach(s => records.push({
       id: s.id,
       tipo: 'Solicitud',
@@ -131,7 +134,7 @@ export default function Dashboard() {
       createdAt: s.createdAt,
       persona: s.persona
     }));
-    
+
     // Ordenar por fecha más reciente
     return records.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   }, [quejas, felicitaciones, solicitudes]);
@@ -140,8 +143,8 @@ export default function Dashboard() {
   const filteredRecords = useMemo(() => {
     return allRecords.filter(record => {
       const matchesSearch = record.descripcion.toLowerCase().includes(filter.toLowerCase()) ||
-                            record.area_medica.toLowerCase().includes(filter.toLowerCase()) ||
-                            (record.persona?.nombre?.toLowerCase().includes(filter.toLowerCase()));
+        record.area_medica.toLowerCase().includes(filter.toLowerCase()) ||
+        (record.persona?.nombre?.toLowerCase().includes(filter.toLowerCase()));
       const matchesType = typeFilter === 'Todos' || record.tipo === typeFilter;
       const matchesStatus = statusFilter === 'Todos' || record.estado === statusFilter;
       return matchesSearch && matchesType && matchesStatus;
@@ -182,12 +185,18 @@ export default function Dashboard() {
   const updateStatus = async (record: RegistroUnificado, newStatus: string, respuesta?: string) => {
     try {
       if (record.tipo === 'Queja') {
-        await quejasService.update(record.id, { 
+        if (newStatus === 'RESUELTO' && respuesta) {
+          await webhookService.quejaDescripcion(record.id, respuesta);
+        }
+        await quejasService.update(record.id, {
           estado: newStatus,
           ...(respuesta && { respuesta })
         });
       } else if (record.tipo === 'Solicitud') {
-        await solicitudService.update(record.id, { 
+        if (newStatus === 'RESUELTO' && respuesta) {
+          await webhookService.solicitudDescripcion(record.id, respuesta);
+        }
+        await solicitudService.update(record.id, {
           estado: newStatus,
           ...(respuesta && { Respuesta: respuesta })
         });
@@ -201,12 +210,12 @@ export default function Dashboard() {
 
   const handleConfirmClose = async () => {
     if (!closingEntry) return;
-    
+
     if (!resolucion.trim()) {
       alert('Por favor ingrese una descripción de cómo se resolvió el caso.');
       return;
     }
-    
+
     const respuestaFinal = `${resolucion}\n\nSatisfacción: ${satisfaccion}`;
     await updateStatus(closingEntry, 'RESUELTO', respuestaFinal);
     setClosingEntry(null);
@@ -251,7 +260,7 @@ export default function Dashboard() {
           </h2>
           <span className="text-xs text-slate-400 font-mono">LIVE DATA</span>
         </div>
-        
+
         {/* KPI Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {stats.map((stat) => (
@@ -309,8 +318,8 @@ export default function Dashboard() {
                 <BarChart data={statusStats} layout="vertical" margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
                   <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#e2e8f0" />
                   <XAxis type="number" hide />
-                  <YAxis dataKey="name" type="category" width={80} tick={{fill: '#64748b', fontSize: 11}} tickLine={false} axisLine={false} />
-                  <Tooltip cursor={{fill: '#f1f5f9'}} contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
+                  <YAxis dataKey="name" type="category" width={80} tick={{ fill: '#64748b', fontSize: 11 }} tickLine={false} axisLine={false} />
+                  <Tooltip cursor={{ fill: '#f1f5f9' }} contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
                   <Bar dataKey="cantidad" fill="#6366f1" radius={[0, 6, 6, 0]} barSize={20} />
                 </BarChart>
               </ResponsiveContainer>
@@ -323,15 +332,15 @@ export default function Dashboard() {
           <div className="flex flex-col sm:flex-row gap-3">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" size={18} />
-              <input 
-                type="text" 
-                placeholder="Buscar por descripción, área o paciente..." 
+              <input
+                type="text"
+                placeholder="Buscar por descripción, área o paciente..."
                 className="w-full pl-10 pr-4 py-2 bg-slate-50 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                 value={filter}
                 onChange={(e) => setFilter(e.target.value)}
               />
             </div>
-            <select 
+            <select
               className="px-4 py-2 bg-slate-50 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm font-medium text-slate-600"
               value={typeFilter}
               onChange={(e) => setTypeFilter(e.target.value)}
@@ -341,7 +350,7 @@ export default function Dashboard() {
               <option value="Felicitación">Felicitaciones</option>
               <option value="Solicitud">Solicitudes</option>
             </select>
-            <select 
+            <select
               className="px-4 py-2 bg-slate-50 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm font-medium text-slate-600"
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
@@ -359,10 +368,10 @@ export default function Dashboard() {
           <h3 className="text-lg font-semibold text-slate-700">
             Bitácora de Casos ({filteredRecords.length})
           </h3>
-          
+
           {filteredRecords.length > 0 ? filteredRecords.map((record) => (
-            <div 
-              key={`${record.tipo}-${record.id}`} 
+            <div
+              key={`${record.tipo}-${record.id}`}
               className={`bg-white rounded-xl shadow-sm border-l-4 ${TYPE_BORDER_COLORS[record.tipo]} border-y border-r border-slate-200 overflow-hidden hover:shadow-md transition-shadow`}
             >
               {/* Card Header */}
@@ -376,11 +385,10 @@ export default function Dashboard() {
                       <h3 className="font-bold text-slate-800">
                         {record.persona?.nombre || `ID: ${record.id_persona}`}
                       </h3>
-                      <span className={`px-2 py-0.5 rounded text-xs font-medium ${
-                        record.tipo === 'Queja' ? 'bg-rose-100 text-rose-700' :
+                      <span className={`px-2 py-0.5 rounded text-xs font-medium ${record.tipo === 'Queja' ? 'bg-rose-100 text-rose-700' :
                         record.tipo === 'Felicitación' ? 'bg-emerald-100 text-emerald-700' :
-                        'bg-blue-100 text-blue-700'
-                      }`}>
+                          'bg-blue-100 text-blue-700'
+                        }`}>
                         {record.tipo}
                       </span>
                     </div>
@@ -400,10 +408,10 @@ export default function Dashboard() {
                     <Calendar size={12} /> {new Date(record.createdAt).toLocaleDateString()}
                     <Clock size={12} /> {new Date(record.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </div>
-                  
+
                   {record.tipo !== 'Felicitación' ? (
                     <div className="relative">
-                      <select 
+                      <select
                         className={`appearance-none pl-3 pr-8 py-1.5 rounded-full text-xs font-bold border cursor-pointer focus:outline-none transition-all ${STATUS_STYLES[record.estado] || 'bg-slate-100 text-slate-600'}`}
                         value={record.estado}
                         onChange={(e) => handleStatusChangeRequest(record, e.target.value)}
@@ -428,7 +436,7 @@ export default function Dashboard() {
                   <span className="font-medium text-slate-700">Descripción: </span>
                   {record.descripcion}
                 </p>
-                
+
                 {record.respuesta && (
                   <div className="mt-3 p-3 bg-slate-50 rounded-lg border border-slate-100">
                     <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1 flex items-center gap-1">
@@ -466,14 +474,13 @@ export default function Dashboard() {
                 <X size={20} />
               </button>
             </div>
-            
+
             <div className="p-6 space-y-5">
               {/* Info del caso */}
               <div className="bg-indigo-50/50 p-4 rounded-xl border border-indigo-100">
                 <div className="flex items-center gap-2 mb-2">
-                  <span className={`px-2 py-0.5 rounded text-xs font-bold ${
-                    closingEntry.tipo === 'Queja' ? 'bg-rose-100 text-rose-700' : 'bg-blue-100 text-blue-700'
-                  }`}>
+                  <span className={`px-2 py-0.5 rounded text-xs font-bold ${closingEntry.tipo === 'Queja' ? 'bg-rose-100 text-rose-700' : 'bg-blue-100 text-blue-700'
+                    }`}>
                     {closingEntry.tipo}
                   </span>
                   <span className="text-sm font-medium text-indigo-900">
@@ -488,7 +495,7 @@ export default function Dashboard() {
                 <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
                   ¿Cómo se resolvió este caso? <span className="text-rose-500">*</span>
                 </label>
-                <textarea 
+                <textarea
                   value={resolucion}
                   onChange={(e) => setResolucion(e.target.value)}
                   className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none resize-none text-sm"
@@ -497,37 +504,16 @@ export default function Dashboard() {
                 />
               </div>
 
-              {/* Nivel de satisfacción */}
-              <div>
-                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
-                  Nivel de Satisfacción del Paciente
-                </label>
-                <div className="relative">
-                  <Smile className="absolute left-3 top-3 text-slate-400" size={18} />
-                  <select 
-                    value={satisfaccion}
-                    onChange={(e) => setSatisfaccion(e.target.value)}
-                    className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-sm appearance-none"
-                  >
-                    <option value="Muy Insatisfecho">Muy Insatisfecho (1/5)</option>
-                    <option value="Insatisfecho">Insatisfecho (2/5)</option>
-                    <option value="Neutro">Neutro (3/5)</option>
-                    <option value="Satisfecho">Satisfecho (4/5)</option>
-                    <option value="Muy Satisfecho">Muy Satisfecho (5/5)</option>
-                  </select>
-                  <ChevronRight size={16} className="absolute right-4 top-3.5 text-slate-400 pointer-events-none rotate-90" />
-                </div>
-              </div>
 
               {/* Botones */}
               <div className="flex justify-end gap-3 pt-2">
-                <button 
-                  onClick={() => setClosingEntry(null)} 
+                <button
+                  onClick={() => setClosingEntry(null)}
                   className="px-4 py-2 text-sm text-slate-500 hover:text-slate-700 font-medium"
                 >
                   Cancelar
                 </button>
-                <button 
+                <button
                   onClick={handleConfirmClose}
                   className="px-6 py-2 text-sm bg-indigo-600 text-white hover:bg-indigo-700 rounded-lg font-bold shadow-md hover:shadow-lg transition-all"
                 >

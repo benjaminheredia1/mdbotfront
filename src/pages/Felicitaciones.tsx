@@ -194,12 +194,7 @@ export default function Felicitaciones() {
                 </div>
 
                 <div className="lg:col-span-4 flex items-center justify-end gap-2">
-                  <button 
-                    onClick={() => openEditModal(felicitacion)}
-                    className="px-4 py-2 text-sm bg-slate-100 text-slate-700 hover:bg-slate-200 rounded-lg font-medium transition-all flex items-center gap-2"
-                  >
-                    <Pencil size={14} /> Editar
-                  </button>
+             
                   <button 
                     onClick={() => handleDelete(felicitacion.id)}
                     className="px-4 py-2 text-sm bg-rose-50 text-rose-600 hover:bg-rose-100 rounded-lg font-medium transition-all flex items-center gap-2"

@@ -216,12 +216,7 @@ export default function Personas() {
 
               {/* Card Footer */}
               <div className="px-4 pb-4 flex gap-2">
-                <button 
-                  onClick={() => openEditModal(persona)}
-                  className="flex-1 px-3 py-2 text-sm bg-slate-100 text-slate-700 hover:bg-slate-200 rounded-lg font-medium transition-all flex items-center justify-center gap-2"
-                >
-                  <Pencil size={14} /> Editar
-                </button>
+               
                 <button 
                   onClick={() => handleDelete(persona.id)}
                   className="flex-1 px-3 py-2 text-sm bg-rose-50 text-rose-600 hover:bg-rose-100 rounded-lg font-medium transition-all flex items-center justify-center gap-2"

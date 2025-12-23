@@ -3,7 +3,7 @@ import axios from 'axios';
 // En producción usa VITE_API_URL, en desarrollo usa el proxy /api
 const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
 
-const api = axios.create  ({
+const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
@@ -51,13 +51,26 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     // No redirigir si es un error de login/register (el usuario está intentando autenticarse)
-    const isAuthEndpoint = error.config?.url?.includes('/usuario/login') || 
-                           error.config?.url?.includes('/usuario/create');
-    
-    if (error.response?.status === 401 && !isAuthEndpoint) {
+    const isAuthEndpoint = error.config?.url?.includes('/usuario/login') ||
+      error.config?.url?.includes('/usuario/create');
+
+    const status = error.response?.status;
+    const errorMessage = error.response?.data?.message || '';
+
+    // Errores que requieren re-autenticación
+    const isAuthError = status === 401 || status === 403;
+    const isTokenExpired = errorMessage.toLowerCase().includes('expired') ||
+      errorMessage.toLowerCase().includes('invalid token') ||
+      errorMessage.toLowerCase().includes('jwt');
+
+    if ((isAuthError || isTokenExpired) && !isAuthEndpoint) {
+      console.warn('Sesión inválida o expirada, redirigiendo al login...');
       deleteCookie('jwt_token');
-      window.location.href = '/login';
+      // Usar replace para evitar que el usuario vuelva atrás
+      window.location.replace('/login');
+      return new Promise(() => { }); // Evitar que se propague el error mientras redirige
     }
+
     return Promise.reject(error);
   }
 );
@@ -287,6 +300,18 @@ export const webhookService = {
     const response = await fetch(`${API_BASE_URL}/webhook/dashboard`);
     if (!response.ok) throw new Error(`Error: ${response.status}`);
     return response.json();
+  },
+  quejaDescripcion: async (id: number, descripcion: string) => {
+    const response = await api.put(`/finalizado/queja`, { id: id, descripcion: descripcion });
+    return response;
+  },
+  felicitacionDescripcion: async (id: number, descripcion: string) => {
+    const response = await api.put(`/finalizado/felicitacion`, { id: id, descripcion: descripcion });
+    return response;
+  },
+  solicitudDescripcion: async (id: number, descripcion: string) => {
+    const response = await api.put(`/finalizado/solicitud`, { id: id, descripcion: descripcion });
+    return response;
   },
 };
 

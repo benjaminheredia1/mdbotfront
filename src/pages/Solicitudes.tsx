@@ -16,7 +16,8 @@ import {
   ChevronRight,
   X
 } from 'lucide-react';
-
+import Swal from 'sweetalert2';
+import { webhookService } from '../services/api';
 const STATUS_STYLES: Record<string, string> = {
   'PENDIENTE': 'bg-amber-50 text-amber-700 border-amber-200 ring-1 ring-amber-100',
   'EN_PROCESO': 'bg-blue-50 text-blue-700 border-blue-200 ring-1 ring-blue-100',
@@ -98,6 +99,35 @@ export default function Solicitudes() {
 
   const handleStatusChange = async (id: number, newStatus: string) => {
     try {
+         if (newStatus === 'RESUELTO') {
+              const result = await Swal.fire({
+                title: "Escriba un comentario sobre como se resolvió la solicitud",
+                input: "text",
+                inputLabel: "Escriba una descripción de la solución",
+                inputValue: "",
+                showCancelButton: true,
+                showConfirmButton: true,
+                confirmButtonText: "Enviar",
+                cancelButtonText: "Cancelar",
+                buttonsStyling: false,
+                customClass: {
+                  confirmButton: "bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 mx-2",
+                  cancelButton: "bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 mx-2"
+                },
+                inputValidator: (value) => {
+                  if (!value) {
+                    return "Por favor escriba un comentario";
+                  }
+                  if (value.length < 10) {
+                    return "El comentario debe tener al menos 10 caracteres";
+                  }
+                }
+              });
+              if (!result.isConfirmed) {
+                return;
+              }
+              await webhookService.solicitudDescripcion(id, result.value);
+            }
       await solicitudService.update(id, { estado: newStatus });
       loadSolicitudes();
     } catch (error) {
@@ -239,12 +269,7 @@ export default function Solicitudes() {
                 </div>
 
                 <div className="lg:col-span-4 flex items-center justify-end gap-2">
-                  <button 
-                    onClick={() => openEditModal(solicitud)}
-                    className="px-4 py-2 text-sm bg-slate-100 text-slate-700 hover:bg-slate-200 rounded-lg font-medium transition-all flex items-center gap-2"
-                  >
-                    <Pencil size={14} /> Editar
-                  </button>
+                  
                   <button 
                     onClick={() => handleDelete(solicitud.id)}
                     className="px-4 py-2 text-sm bg-rose-50 text-rose-600 hover:bg-rose-100 rounded-lg font-medium transition-all flex items-center gap-2"

@@ -3,16 +3,18 @@ import type { FormEvent } from 'react';
 import DashboardLayout from '../components/DashboardLayout';
 import { quejasService } from '../services/api';
 import type { Queja } from '../types';
-import { 
-  MapPin, 
-  User, 
-  Pencil, 
-  Trash2, 
-  Plus, 
-  Search, 
-  AlertCircle, 
-  Calendar, 
-  Clock, 
+import Swal from 'sweetalert2';
+import { webhookService } from '../services/api';
+import {
+  MapPin,
+  User,
+  Pencil,
+  Trash2,
+  Plus,
+  Search,
+  AlertCircle,
+  Calendar,
+  Clock,
   ChevronRight,
   X,
   FileText
@@ -31,7 +33,7 @@ export default function Quejas() {
   const [editingQueja, setEditingQueja] = useState<Queja | null>(null);
   const [filter, setFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('Todos');
-  
+
   const [formData, setFormData] = useState({
     descripcion: '',
     area_medica: '',
@@ -56,8 +58,8 @@ export default function Quejas() {
 
   const filteredQuejas = quejas.filter(queja => {
     const matchesSearch = queja.descripcion.toLowerCase().includes(filter.toLowerCase()) ||
-                          queja.area_medica.toLowerCase().includes(filter.toLowerCase()) ||
-                          (queja.persona?.nombre?.toLowerCase().includes(filter.toLowerCase()));
+      queja.area_medica.toLowerCase().includes(filter.toLowerCase()) ||
+      (queja.persona?.nombre?.toLowerCase().includes(filter.toLowerCase()));
     const matchesStatus = statusFilter === 'Todos' || queja.estado === statusFilter;
     return matchesSearch && matchesStatus;
   });
@@ -88,7 +90,7 @@ export default function Quejas() {
 
   const handleDelete = async (id: number) => {
     if (!confirm('¿Estás seguro de eliminar esta queja?')) return;
-    
+
     try {
       await quejasService.delete(id);
       loadQuejas();
@@ -99,6 +101,35 @@ export default function Quejas() {
 
   const handleStatusChange = async (id: number, newStatus: string) => {
     try {
+      if (newStatus === 'RESUELTO') {
+        const result = await Swal.fire({
+          title: "Escriba un comentario sobre como se resolvió la queja",
+          input: "text",
+          inputLabel: "Escriba una descripción de la solución",
+          inputValue: "",
+          showCancelButton: true,
+          showConfirmButton: true,
+          confirmButtonText: "Enviar",
+          cancelButtonText: "Cancelar",
+          buttonsStyling: false,
+          customClass: {
+            confirmButton: "bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 mx-2",
+            cancelButton: "bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 mx-2"
+          },
+          inputValidator: (value) => {
+            if (!value) {
+              return "Por favor escriba un comentario";
+            }
+            if (value.length < 10) {
+              return "El comentario debe tener al menos 10 caracteres";
+            }
+          }
+        });
+        if (!result.isConfirmed) {
+          return;
+        }
+        await webhookService.quejaDescripcion(id, result.value);
+      }
       await quejasService.update(id, { estado: newStatus });
       loadQuejas();
     } catch (error) {
@@ -146,7 +177,7 @@ export default function Quejas() {
           <h2 className="text-2xl font-bold text-slate-800 border-l-4 border-rose-600 pl-4">
             Gestión de Quejas
           </h2>
-          <button 
+          <button
             onClick={() => setShowModal(true)}
             className="px-4 py-2 bg-rose-600 text-white rounded-lg hover:bg-rose-700 transition-all shadow-md hover:shadow-lg flex items-center gap-2 font-medium text-sm"
           >
@@ -158,16 +189,16 @@ export default function Quejas() {
         <div className="flex flex-col sm:flex-row gap-3 w-full bg-white p-2 rounded-lg shadow-sm border border-slate-200">
           <div className="relative group flex-1">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 group-focus-within:text-rose-500 transition-colors" size={18} />
-            <input 
-              type="text" 
-              placeholder="Buscar por descripción, área o paciente..." 
+            <input
+              type="text"
+              placeholder="Buscar por descripción, área o paciente..."
               className="pl-10 pr-4 py-2 bg-transparent focus:outline-none text-sm w-full"
               value={filter}
               onChange={(e) => setFilter(e.target.value)}
             />
           </div>
           <div className="h-8 w-px bg-slate-200 hidden sm:block self-center"></div>
-          <select 
+          <select
             className="px-4 py-2 bg-transparent focus:outline-none text-sm font-medium text-slate-600 cursor-pointer hover:text-rose-600 transition-colors"
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
@@ -182,8 +213,8 @@ export default function Quejas() {
         {/* List */}
         <div className="space-y-4">
           {filteredQuejas.length > 0 ? filteredQuejas.map((queja) => (
-            <div 
-              key={queja.id} 
+            <div
+              key={queja.id}
               className="bg-white rounded-xl shadow-sm border-l-4 border-l-rose-500 border-y border-r border-slate-200 overflow-hidden hover:shadow-md transition-shadow duration-200"
             >
               {/* Card Header */}
@@ -214,7 +245,7 @@ export default function Quejas() {
                     <Clock size={12} className="ml-1" /> {new Date(queja.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </div>
                   <div className="relative">
-                    <select 
+                    <select
                       className={`appearance-none pl-3 pr-8 py-1.5 rounded-full text-xs font-bold border cursor-pointer focus:ring-2 focus:ring-offset-1 focus:outline-none transition-all ${STATUS_STYLES[queja.estado] || 'bg-slate-100 text-slate-600'}`}
                       value={queja.estado}
                       onChange={(e) => handleStatusChange(queja.id, e.target.value)}
@@ -240,13 +271,8 @@ export default function Quejas() {
                 </div>
 
                 <div className="lg:col-span-4 flex items-center justify-end gap-2">
-                  <button 
-                    onClick={() => openEditModal(queja)}
-                    className="px-4 py-2 text-sm bg-slate-100 text-slate-700 hover:bg-slate-200 rounded-lg font-medium transition-all flex items-center gap-2"
-                  >
-                    <Pencil size={14} /> Editar
-                  </button>
-                  <button 
+
+                  <button
                     onClick={() => handleDelete(queja.id)}
                     className="px-4 py-2 text-sm bg-rose-50 text-rose-600 hover:bg-rose-100 rounded-lg font-medium transition-all flex items-center gap-2"
                   >
@@ -355,15 +381,15 @@ export default function Quejas() {
                 )}
 
                 <div className="flex justify-end gap-3 pt-2">
-                  <button 
-                    type="button" 
-                    onClick={resetForm} 
+                  <button
+                    type="button"
+                    onClick={resetForm}
                     className="px-4 py-2 text-sm text-slate-500 hover:text-slate-700 font-medium"
                   >
                     Cancelar
                   </button>
-                  <button 
-                    type="submit" 
+                  <button
+                    type="submit"
                     className="px-6 py-2 text-sm bg-rose-600 text-white hover:bg-rose-700 rounded-lg font-bold shadow-md hover:shadow-lg transition-all"
                   >
                     {editingQueja ? 'Actualizar' : 'Crear Queja'}
