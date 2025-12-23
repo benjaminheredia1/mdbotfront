@@ -6,7 +6,6 @@ import type { Solicitud } from '../types';
 import { 
   MapPin, 
   User, 
-  Pencil, 
   Trash2, 
   Plus, 
   Search, 
@@ -146,16 +145,7 @@ export default function Solicitudes() {
     setShowModal(false);
   };
 
-  const openEditModal = (solicitud: Solicitud) => {
-    setEditingSolicitud(solicitud);
-    setFormData({
-      descripcion: solicitud.descripcion,
-      area: solicitud.area_medica,
-      id_persona: solicitud.id_persona,
-      estado: solicitud.estado,
-    });
-    setShowModal(true);
-  };
+
 
   if (loading) {
     return (

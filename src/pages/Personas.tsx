@@ -5,7 +5,6 @@ import { personaService } from '../services/api';
 import type { Persona } from '../types';
 import { 
   User, 
-  Pencil, 
   Trash2, 
   Plus, 
   Search, 
@@ -105,18 +104,7 @@ export default function Personas() {
     setShowModal(false);
   };
 
-  const openEditModal = (persona: Persona) => {
-    setEditingPersona(persona);
-    setFormData({
-      nombre: persona.nombre,
-      hcCode: persona.hcCode,
-      insurance: persona.insurance || '',
-      business: persona.business || '',
-      status: persona.status || '',
-      area: persona.area || '',
-    });
-    setShowModal(true);
-  };
+
 
   if (loading) {
     return (

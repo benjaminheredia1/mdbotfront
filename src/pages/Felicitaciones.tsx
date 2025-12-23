@@ -6,7 +6,6 @@ import type { Felicitacion } from '../types';
 import { 
   MapPin, 
   User, 
-  Pencil, 
   Trash2, 
   Plus, 
   Search, 
@@ -92,15 +91,7 @@ export default function Felicitaciones() {
     setShowModal(false);
   };
 
-  const openEditModal = (felicitacion: Felicitacion) => {
-    setEditingFelicitacion(felicitacion);
-    setFormData({
-      descripcion: felicitacion.descripcion,
-      area_medica: felicitacion.area_medica,
-      id_persona: felicitacion.id_persona,
-    });
-    setShowModal(true);
-  };
+
 
   if (loading) {
     return (

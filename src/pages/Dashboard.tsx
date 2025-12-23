@@ -4,7 +4,7 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell
 } from 'recharts';
-import { quejasService, felicitacionService, solicitudService } from '../services/api';
+import { quejasService, felicitacionService, solicitudService, webhookService } from '../services/api';
 
 import type { Queja, Felicitacion, Solicitud } from '../types';
 import {
@@ -18,8 +18,7 @@ import {
   ChevronRight,
   MapPin,
   X,
-  ClipboardCheck,
-  Smile
+  ClipboardCheck
 } from 'lucide-react';
 
 const COLORS = {
@@ -55,8 +54,7 @@ interface RegistroUnificado {
     hcCode: string;
   };
 }
-import Swal from 'sweetalert2';
-import { webhookService } from '../services/api';
+
 
 export default function Dashboard() {
   const [quejas, setQuejas] = useState<Queja[]>([]);

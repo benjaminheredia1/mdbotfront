@@ -8,7 +8,6 @@ import { webhookService } from '../services/api';
 import {
   MapPin,
   User,
-  Pencil,
   Trash2,
   Plus,
   Search,
@@ -148,16 +147,7 @@ export default function Quejas() {
     setShowModal(false);
   };
 
-  const openEditModal = (queja: Queja) => {
-    setEditingQueja(queja);
-    setFormData({
-      descripcion: queja.descripcion,
-      area_medica: queja.area_medica,
-      id_persona: queja.id_persona,
-      estado: queja.estado,
-    });
-    setShowModal(true);
-  };
+
 
   if (loading) {
     return (
