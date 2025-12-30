@@ -5,7 +5,7 @@ import {
   PieChart, Pie, Cell
 } from 'recharts';
 import { quejasService, felicitacionService, solicitudService, webhookService } from '../services/api';
-
+import CountdownBadge from '../components/Clock';
 import type { Queja, Felicitacion, Solicitud } from '../types';
 import {
   Activity,
@@ -404,7 +404,8 @@ export default function Dashboard() {
                 <div className="flex flex-col items-start sm:items-end gap-2 w-full sm:w-auto">
                   <div className="flex items-center gap-2 text-xs text-slate-400">
                     <Calendar size={12} /> {new Date(record.createdAt).toLocaleDateString()}
-                    <Clock size={12} /> {new Date(record.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    <Clock size={12} /> {new Date(record.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} 
+                    <div className='bg-yellow-500 text-white rounded-full px-2 w-20! h-5 text-center flex items-center justify-center'> <CountdownBadge createdAt={record.createdAt} /> </div> 
                   </div>
 
                   {record.tipo !== 'Felicitación' ? (

@@ -17,6 +17,7 @@
     "react-dom": "^19.2.0",
     "react-loading-indicators": "^1.0.1",
     "react-router": "^7.10.1",
+    "react-timer-hook": "^4.0.5",
     "recharts": "^3.5.1",
     "sweetalert2": "^11.26.17"
   },
