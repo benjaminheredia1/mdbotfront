@@ -131,6 +131,10 @@ export const solicitudService = {
     api.put(`/solicitud/${id}`, data),
   delete: (id: number) => api.delete(`/solicitud/${id}`),
 };
+//Formularios
+export const formularioService = {
+  getAll: () => api.get('/formulario/get')
+};
 
 // Personas
 export const personaService = {

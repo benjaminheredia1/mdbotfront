@@ -100,6 +100,12 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             icon={<Users size={20} />} 
             label="Personas" 
           />
+           <NavButton 
+            active={isActive('/calificacion')} 
+            to="/calificacion"
+            icon={<Users size={20} />} 
+            label="Calificacion" 
+          />
         </nav>
 
         <div className="p-4 border-t border-slate-700 shrink-0">
