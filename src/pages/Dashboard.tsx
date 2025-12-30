@@ -407,6 +407,7 @@ export default function Dashboard() {
                     <Clock size={12} /> {new Date(record.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} 
                     <div className='bg-yellow-500 text-white rounded-full px-2 w-20! h-5 text-center flex items-center justify-center'> <CountdownBadge createdAt={record.createdAt} /> </div> 
                   </div>
+                  
 
                   {record.tipo !== 'Felicitación' ? (
                     <div className="relative">
