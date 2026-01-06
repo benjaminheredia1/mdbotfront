@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client'
 import './index.css'
 import { createBrowserRouter, RouterProvider, Navigate } from "react-router";
 import Login from './pages/Login.tsx';
+import AuthCallback from './pages/AuthCallback.tsx';
 import Dashboard from './pages/Dashboard.tsx';
 import Quejas from './pages/Quejas.tsx';
 import Felicitaciones from './pages/Felicitaciones.tsx';
@@ -10,18 +11,19 @@ import Solicitudes from './pages/Solicitudes.tsx';
 import Personas from './pages/Personas.tsx';
 import { getCookie } from './services/api.ts';
 import Calificacion from './pages/Calificacion.tsx';
+
 // Componente para rutas protegidas
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   // Verificar directamente la cookie además del servicio
   const token = getCookie('jwt_token');
   const isLoggedIn = token !== null && token.length > 0;
-  
+
   console.log('ProtectedRoute - Token exists:', isLoggedIn, 'Token length:', token?.length);
-  
+
   if (!isLoggedIn) {
     return <Navigate to="/login" replace />;
   }
-  
+
   return <>{children}</>;
 };
 
@@ -29,11 +31,11 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 const PublicRoute = ({ children }: { children: React.ReactNode }) => {
   const token = getCookie('jwt_token');
   const isLoggedIn = token !== null && token.length > 0;
-  
+
   if (isLoggedIn) {
     return <Navigate to="/dashboard" replace />;
   }
-  
+
   return <>{children}</>;
 };
 
@@ -93,11 +95,16 @@ const router = createBrowserRouter([
   {
     path: "/calificacion",
     element: <Calificacion />,
+  },
+  {
+    path: "/auth/callback",
+    element: <AuthCallback />,
   }
 ]);
 
 createRoot(document.getElementById('root')!).render(
+  
   <StrictMode>
     <RouterProvider router={router} />
   </StrictMode>,
-)
+);
